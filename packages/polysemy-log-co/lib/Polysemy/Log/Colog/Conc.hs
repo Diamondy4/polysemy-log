@@ -2,7 +2,8 @@
 module Polysemy.Log.Colog.Conc where
 
 import qualified Colog
-import Colog (LogAction, convertToLogAction, defCapacity, forkBackgroundLogger, killBackgroundLogger)
+import Colog (LogAction)
+import Colog.Concurrent (convertToLogAction, defCapacity, forkBackgroundLogger, killBackgroundLogger)
 import Colog.Concurrent.Internal (Capacity)
 import qualified Colog.Polysemy as Colog
 import Colog.Polysemy (runLogAction)
@@ -19,7 +20,7 @@ interpretCologConcNativeWith ::
   LogAction IO msg ->
   InterpreterFor (Colog.Log msg) r
 interpretCologConcNativeWith capacity action sem = do
-  bracket (embed (forkBackgroundLogger capacity action)) (embed . killBackgroundLogger) use
+  bracket (embed (forkBackgroundLogger capacity action (pure ()))) (embed . killBackgroundLogger) use
   where
     use worker =
       runLogAction (convertToLogAction @IO worker) sem
